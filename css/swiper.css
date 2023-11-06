@@ -556,3 +556,7 @@ button.swiper-pagination-bullet {
   -moz-user-select: none;
   user-select: none;
 }
+
+.swiper-slide {
+  block-size: auto;
+}

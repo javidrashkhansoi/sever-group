@@ -1,6 +1,493 @@
 /******/ (function() { // webpackBootstrap
 /******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ({
+
+/***/ 524:
+/***/ (function(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   M: function() { return /* binding */ Slide; }
+/* harmony export */ });
+class Slide {
+  static addingClass = "slide-active";
+
+  /**
+   * @description
+   * Плавно раскрывает элемент.
+   *
+   * @param {Element} element - Элемент, который будет раскрываться.
+   *
+   * @param {number} duration - Время в миллисекундах, за которое элемент раскроется. По умолчанию 300.
+   *
+   * @returns {void}
+   */
+  static down(element, duration = 300) {
+    const { classList: elementClassList } = element;
+
+    if (!elementClassList.contains(this.addingClass)) {
+      const { style: elementStyle } = element;
+
+      elementClassList.add(this.addingClass);
+
+      if (element.hidden) element.hidden = false;
+
+      elementStyle.overflow = "hidden";
+      elementStyle.height = 0;
+      elementStyle.paddingTop = 0;
+      elementStyle.paddingBottom = 0;
+      elementStyle.marginTop = 0;
+      elementStyle.marginBottom = 0;
+      element.offsetHeight;
+      elementStyle.transitionProperty = "height, margin, padding";
+      elementStyle.transitionDuration = `${duration}ms`;
+      elementStyle.height = `${element.scrollHeight}px`;
+      elementStyle.removeProperty("padding-top");
+      elementStyle.removeProperty("padding-bottom");
+      elementStyle.removeProperty("margin-top");
+      elementStyle.removeProperty("margin-bottom");
+
+      setTimeout(() => {
+        elementStyle.removeProperty("height");
+        elementStyle.removeProperty("overflow");
+        elementStyle.removeProperty("transition-duration");
+        elementStyle.removeProperty("transition-property");
+        elementClassList.remove(this.addingClass);
+      }, duration);
+    }
+  }
+
+  /**
+   * @description
+   * Плавно скрывает элемент.
+   *
+   * @param {Element} element - Элемент, который будет скрываться.
+   *
+   * @param {number} duration - Время в миллисекундах, за которое элемент скроется. По умолчанию 300.
+   *
+   * @returns {void}
+   */
+  static up(element, duration = 300) {
+    const { classList: elementClassList } = element;
+
+    if (!elementClassList.contains(this.addingClass)) {
+      const { style: elementStyle, offsetHeight } = element;
+
+      elementClassList.add(this.addingClass);
+      elementStyle.transitionProperty = "height, margin, padding";
+      elementStyle.transitionDuration = `${duration}ms`;
+      elementStyle.height = `${offsetHeight}px`;
+      element.offsetHeight;
+      elementStyle.overflow = "hidden";
+      elementStyle.height = 0;
+      elementStyle.paddingTop = 0;
+      elementStyle.paddingBottom = 0;
+      elementStyle.marginTop = 0;
+      elementStyle.marginBottom = 0;
+
+      setTimeout(() => {
+        element.hidden = true;
+        elementStyle.removeProperty("height");
+        elementStyle.removeProperty("padding-top");
+        elementStyle.removeProperty("padding-bottom");
+        elementStyle.removeProperty("margin-top");
+        elementStyle.removeProperty("margin-bottom");
+        elementStyle.removeProperty("overflow");
+        elementStyle.removeProperty("transition-duration");
+        elementStyle.removeProperty("transition-property");
+        elementClassList.remove(this.addingClass);
+      }, duration);
+    }
+  }
+
+  /**
+   * @description
+   * Плавно раскрывает/скрывает элемент.
+   *
+   * @param {Element} element - Элемент, который будет раскрываться/скрываться.
+   *
+   * @param {number} duration - Время в миллисекундах, за которое элемент раскроется/скроется. По умолчанию 300.
+   *
+   * @returns {void}
+   */
+  static toggle(element, duration = 300) {
+    element.hidden ? this.down(element, duration) : this.up(element, duration);
+  }
+}
+
+
+
+
+/***/ }),
+
+/***/ 635:
+/***/ (function(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   r: function() { return /* binding */ Spoilers; }
+/* harmony export */ });
+/* harmony import */ var _slide_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(524);
+
+
+const addingClass = "spoiler-active";
+const keyCodes = ["ArrowDown", "ArrowUp", "Home", "End"];
+const [down, up, home, end] = keyCodes;
+const selectors = {
+  button: "[data-spoiler=\"button\"]",
+  region: "[data-spoiler=\"region\"]"
+}
+
+class Spoilers {
+  #accordion;
+  /** @type {SpoilerObject} */
+  #activeSpoiler;
+  #breakpoint;
+  #breakpointType;
+  /** @type {HTMLButtonElement[]} */
+  #buttons = [];
+  #firstButton;
+  #id = `spoilerID-${Date.now().toString(36)}-${Math.random().toString(36).substring(2)}`;
+  #lastButton;
+  #matchMedia;
+  #onClick = this.#click.bind(this);
+  #onKeydown = this.#keydown.bind(this);
+  #parent;
+  /** @type {boolean} */
+  #slided;
+  #slideDuration;
+  /** @type {Element[]} */
+  #spoilers;
+  /** @type {SpoilerObject[]} */
+  #spoilersArray = [];
+  #spoilerSize;
+  /** @type {WeakMap<HTMLButtonElement, SpoilerObject>} */
+  #spoilersObject = new WeakMap();
+
+  /** @type {SpoilersConstructor} */
+  constructor(parent, options = {}) {
+    if (parent instanceof Element) {
+      this.#parent = parent;
+      this.#spoilers = [...this.#parent.children];
+    } else if (
+      ["string", "undefined"].includes(typeof parent) ||
+      parent instanceof NodeList ||
+      parent instanceof HTMLCollection
+    ) {
+      const spoilersParents = ["string", "undefined"].includes(typeof parent) ?
+        document.querySelectorAll(parent ?? "[data-spoilers]") : [...parent];
+      const spoilersParentsLength = spoilersParents.length;
+
+      if (spoilersParentsLength > 1) {
+        const spoilersCollection = (new class Spoilers { });
+
+        spoilersParents.forEach(($spoilerParent, index) => {
+          spoilersCollection[index] = new Spoilers($spoilerParent, options);
+        });
+
+        return spoilersCollection;
+      } else if (spoilersParentsLength === 1) {
+        this.#parent = spoilersParents[0];
+        this.#spoilers = [...this.#parent.children];
+      }
+    }
+
+    if (this.#spoilers?.length) {
+      const [
+        {
+          accordion: datasetAccordion,
+          breakpoint: datasetBreakpoint,
+          breakpointType: datasetBreakpointType,
+          slideDuration: datasetSlideDuration
+        },
+        {
+          accordion: optionsAccordion,
+          breakpoint: optionsBreakpoint,
+          breakpointType: optionsBreakpointType,
+          slideDuration: optionsSlideDuration
+        }
+      ] = this.#checkOptionsValidity(this.#parent.dataset, options);
+
+      this.#accordion = datasetAccordion ?? optionsAccordion ?? true;
+      this.#breakpoint = datasetBreakpoint ?? optionsBreakpoint ?? false;
+
+      if (this.#breakpoint) {
+        this.#breakpointType = datasetBreakpointType ?? optionsBreakpointType ?? "max";
+        this.#matchMedia = matchMedia(`(${this.#breakpointType}-width: ${this.#breakpoint}px)`);
+      }
+
+      this.#slideDuration = datasetSlideDuration ?? optionsSlideDuration ?? 300;
+
+      this.#spoilers.forEach(($spoiler, index) => {
+        /** @type {HTMLButtonElement} */
+        const $button = $spoiler.querySelector(selectors.button);
+        /** @type {HTMLDivElement} */
+        const $region = $spoiler.querySelector(selectors.region);
+
+        if ($button && $region) {
+          const id = `${this.#id}-${index}`;
+          const isActive = $spoiler.classList.contains(addingClass);
+
+          let { slideDuration } = $spoiler.dataset;
+
+          this.#buttons.push($button);
+          $button.id = `${id}-button`;
+          $region.id = `${id}-region`;
+          slideDuration = !!slideDuration?.trim() && Number.isInteger(+slideDuration) ?
+            +slideDuration : this.#slideDuration;
+
+          /** @type {SpoilerObject} */
+          const spoiler = { $button, $region, $spoiler, isActive, slideDuration }
+
+          this.#spoilersObject.set($button, spoiler);
+          this.#spoilersArray.push(spoiler);
+        }
+      });
+
+      this.#spoilerSize = this.#spoilersArray.length;
+
+      if (this.#spoilerSize) {
+        this.#firstButton = this.#buttons[0];
+        this.#lastButton = this.#buttons.at(-1);
+
+        this.#init();
+      }
+    }
+  }
+
+  /** @type {SpoilerOptionsValidation} */
+  #checkOptionsValidity(...options) {
+    options = options.map(options => {
+      let { accordion, breakpoint, breakpointType, slideDuration } = options;
+
+      accordion = ["undefined", "boolean"].includes(typeof accordion) ? accordion :
+        ["true", "false"].includes(accordion) ? eval(accordion) : undefined;
+      breakpoint = typeof breakpoint === "undefined" || Number.isInteger(breakpoint) ? breakpoint :
+        ["false", false].includes(breakpoint) ? false :
+          typeof breakpoint === "string" && !!breakpoint.trim() && Number.isInteger(+breakpoint) ?
+            +breakpoint : undefined;
+      breakpointType = typeof breakpointType === "undefined" || ["min", "max"].includes(breakpointType) ?
+        breakpointType : undefined;
+      slideDuration = typeof slideDuration === "undefined" || Number.isInteger(slideDuration) ? slideDuration :
+        typeof slideDuration === "string" && !!slideDuration.trim() && Number.isInteger(+slideDuration) ?
+          +slideDuration : undefined;
+
+      return { accordion, breakpoint, breakpointType, slideDuration };
+    });
+
+    return options;
+  }
+
+  #init() {
+    if (this.#breakpoint) {
+      this.#matchMedia.matches ? this.#activate() : this.#disableButtons();
+
+      this.#matchMedia.addEventListener("change", event => {
+        event.matches ? this.#activate() : this.#inactivate();
+      });
+    } else {
+      this.#activate();
+    }
+  }
+
+  #activate() {
+    this.#spoilersArray.forEach(spoiler => {
+      const { $button, $region, isActive } = spoiler;
+
+      if ($button.hasAttribute("disabled")) this.#activateButtons($button);
+
+      $button.setAttribute("aria-controls", $region.id);
+      $button.ariaExpanded = isActive;
+      $region.hidden = !isActive;
+      $button.addEventListener("click", this.#onClick);
+      $button.addEventListener("keydown", this.#onKeydown);
+
+      if (this.#accordion || this.#spoilerSize < 7) {
+        $region.setAttribute("role", "region");
+        $region.setAttribute("aria-labeledby", $button.id);
+      }
+
+      if (this.#accordion && isActive) {
+        if (this.#activeSpoiler) {
+          const { $button, $region, $spoiler } = this.#activeSpoiler;
+
+          this.#activeSpoiler.isActive = false;
+          $button.ariaExpanded = false;
+          $region.hidden = true;
+          $spoiler.classList.remove(addingClass);
+        }
+
+        this.#activeSpoiler = spoiler;
+      }
+    });
+  }
+
+  #inactivate() {
+    if (this.#activeSpoiler) this.#activeSpoiler = null;
+
+    this.#spoilersArray.forEach(spoiler => {
+      const { $button, $region } = spoiler;
+
+      this.#disableButtons($button);
+      $button.removeAttribute("aria-controls");
+      $button.removeAttribute("aria-expanded");
+      $region.hidden = false;
+      $button.removeEventListener("click", this.#onClick);
+      $button.removeEventListener("keydown", this.#onKeydown);
+
+      if (this.#accordion || this.#spoilerSize < 7) {
+        $region.removeAttribute("role");
+        $region.removeAttribute("aria-labeledby");
+      }
+    });
+  }
+
+  /** @param {HTMLButtonElement} $button */
+  #disableButtons($button) {
+    if ($button) {
+      $button.disabled = true;
+    } else {
+      this.#spoilersArray.forEach(spoiler => {
+        spoiler.$button.disabled = true;
+      });
+    }
+  }
+
+  /** @param {HTMLButtonElement} $button */
+  #activateButtons($button) {
+    if ($button) {
+      $button.disabled = false;
+    } else {
+      this.#spoilersArray.forEach(spoiler => {
+        spoiler.$button.disabled = false;
+      });
+    }
+  }
+
+  /** @param {MouseEvent} event */
+  #click(event) {
+    const spoiler = this.#spoilersObject.get(event.currentTarget);
+    const { $region, isActive, slideDuration } = spoiler;
+
+    if (!$region.classList.contains(_slide_js__WEBPACK_IMPORTED_MODULE_0__/* .Slide */ .M.addingClass) && !this.#slided) {
+      this.#slided = true;
+
+      isActive ? this.#hide(spoiler) : this.#show(spoiler);
+
+      setTimeout(() => {
+        this.#slided = false;
+      }, slideDuration);
+    }
+  }
+
+  /** @param {KeyboardEvent} event */
+  #keydown(event) {
+    const { code } = event;
+
+    if (keyCodes.includes(code)) {
+      event.preventDefault();
+
+      const { currentTarget } = event;
+
+      if (
+        (currentTarget === this.#firstButton && code === home) ||
+        (currentTarget === this.#lastButton && code === end)
+      ) return;
+
+      if ([down, up].includes(code)) {
+        const index = this.#buttons.indexOf(currentTarget);
+
+        if (code === down) {
+          currentTarget === this.#lastButton ? this.#firstButton.focus() :
+            index === this.#spoilerSize - 2 ? this.#lastButton.focus() :
+              this.#buttons[index + 1].focus();
+        } else {
+          currentTarget === this.#firstButton ? this.#lastButton.focus() :
+            index === 1 ? this.#firstButton.focus() :
+              this.#buttons[index - 1].focus();
+        }
+      } else {
+        code === home ? this.#firstButton.focus() : this.#lastButton.focus();
+      }
+    }
+  }
+
+  /** @param {SpoilerObject} spoiler */
+  #show(spoiler) {
+    const { $button, $region, $spoiler, slideDuration } = spoiler;
+
+    if (this.#accordion && this.#activeSpoiler) this.#hide(this.#activeSpoiler);
+
+    this.#activeSpoiler = spoiler;
+    spoiler.isActive = true;
+    $button.ariaExpanded = true;
+    $spoiler.classList.add(addingClass);
+    _slide_js__WEBPACK_IMPORTED_MODULE_0__/* .Slide */ .M.down($region, slideDuration);
+  }
+
+  /** @param {SpoilerObject} spoiler */
+  #hide(spoiler) {
+    const { $button, $region, $spoiler, slideDuration } = spoiler;
+
+    this.#activeSpoiler = null;
+    spoiler.isActive = false;
+    $button.ariaExpanded = false;
+    $spoiler.classList.remove(addingClass);
+    _slide_js__WEBPACK_IMPORTED_MODULE_0__/* .Slide */ .M.up($region, slideDuration);
+  }
+}
+
+
+
+
+/***/ })
+
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	!function() {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = function(exports, definition) {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	}();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	!function() {
+/******/ 		__webpack_require__.o = function(obj, prop) { return Object.prototype.hasOwnProperty.call(obj, prop); }
+/******/ 	}();
+/******/ 	
+/************************************************************************/
 var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+!function() {
 
 ;// CONCATENATED MODULE: ./src/js/modules/app.js
 class App {
@@ -403,7 +890,9 @@ class Burger {
 ;// CONCATENATED MODULE: ./src/js/scripts/scripts/burger.js
 
 
-const burger = new Burger();
+const burger = new Burger({
+  breakpoint: false,
+});
 
 ;// CONCATENATED MODULE: ./src/js/scripts/scripts/up.js
 /** @type {HTMLButtonElement} */
@@ -444,7 +933,167 @@ upButton?.addEventListener("click", () => {
   });
 });
 
+;// CONCATENATED MODULE: ./src/js/scripts/scripts/menu.js
+/** @type {HTMLElement} */
+const header = document.querySelector(".header");
+/** @type {NodeListOf<HTMLButtonElement} */
+const menuButtons = header?.querySelectorAll(".menu-button[data-menu]");
+/** @type {NodeListOf<HTMLUListElement>} */
+const sublists = header?.querySelectorAll(".header-nav__region[data-sublist]");
+
+if (menuButtons.length && sublists.length) {
+  menuButtons.forEach(menuButton => {
+    menuButton.addEventListener("click", () => {
+      const { dataset } = menuButton;
+      const { menu } = dataset;
+
+      menuButton.classList.add("enter")
+
+      sublists.forEach(sublist => {
+        const { dataset } = sublist;
+        const { sublist: sublistData } = dataset;
+
+        if (menu === sublistData) {
+          sublist.classList.add("header-nav__region--active");
+          menuButton.classList.add("menu-button--active")
+        }
+      });
+    });
+  });
+
+  document.addEventListener("click", event => {
+    /** @type {{target: HTMLElement}} */
+    const { target } = event;
+
+    if (!target.closest(".header")) closeSublist();
+  });
+
+  document.addEventListener("keydown", event => {
+    const { code } = event;
+
+    if (code === "Escape") closeSublist();
+  });
+
+  function closeSublist() {
+    const activeSublist = header.querySelector(".header-nav__region--active");
+    const activeMenuButton = header.querySelector(".menu-button--active");
+
+    activeSublist?.classList.remove("header-nav__region--active");
+    activeMenuButton?.classList.remove("menu-button--active");
+  }
+}
+
+;// CONCATENATED MODULE: ./src/js/modules/move.js
+class Move {
+  #$destination;
+  #$elementAtIndex;
+  #$placeholder = document.createElement("div");
+  #$target;
+  #breakpoint;
+  #breakpointType;
+  #destinationChildren;
+  #index;
+  #matchMedia;
+
+  /** @param {MoveOptions} options */
+  constructor(options) {
+    this.#$destination = document.querySelector(options.destinationSelector);
+    this.#$target = document.querySelector(options.targetSelector);
+
+    if (this.#$destination && this.#$target) {
+      this.#breakpoint = options.breakpoint ?? 768;
+      this.#breakpointType = options.breakpointType ?? "max";
+      this.#destinationChildren = this.#$destination.children;
+      this.#index = options.index ?? "last";
+      this.#matchMedia = matchMedia(`(${this.#breakpointType}-width: ${this.#breakpoint}px)`);
+
+      if (this.#index !== "first" && this.#index !== "last") {
+        this.#$elementAtIndex = this.#destinationChildren[this.#index];
+      }
+
+      this.#init();
+    }
+  }
+
+  #init() {
+    this.#$placeholder.hidden = true;
+
+    if (this.#matchMedia.matches) this.#move();
+
+    this.#matchMedia.addEventListener("change", event => {
+      event.matches ? this.#move() : this.#remove();
+    });
+  }
+
+  #move() {
+    this.#$target.insertAdjacentElement("beforebegin", this.#$placeholder);
+
+    if (this.#$elementAtIndex) {
+      this.#$elementAtIndex.insertAdjacentElement("beforebegin", this.#$target);
+    } else if (this.#index === "first") {
+      this.#$destination.insertAdjacentElement("afterbegin", this.#$target);
+    } else {
+      this.#$destination.insertAdjacentElement("beforeend", this.#$target);
+    }
+  }
+
+  #remove() {
+    this.#$placeholder.insertAdjacentElement("beforebegin", this.#$target);
+    this.#$placeholder.remove();
+  }
+}
+
+
+
+;// CONCATENATED MODULE: ./src/js/scripts/scripts/move.js
+
+
+const burgerButton = document.querySelector(".burger-button");
+const headerInner = document.querySelector(".header__inner");
+
+if (burgerButton && headerInner) {
+  const move = new Move({
+    destinationSelector: ".header__inner",
+    targetSelector: ".burger-button",
+    breakpoint: 992,
+    index: "first",
+  });
+}
+
+const headerAddress = document.querySelector(".header-column__address");
+const navSocials = document.querySelector(".header-socials__inner");
+
+if (headerAddress && navSocials) {
+  const move = new Move({
+    destinationSelector: ".header-socials__inner",
+    targetSelector: ".header-column__address",
+    breakpoint: 992,
+    index: "first",
+  });
+}
+
+const footerInfo = document.querySelector(".footer-info");
+const footerInner = document.querySelector(".footer__inner");
+
+if (footerInfo && footerInner) {
+  const move = new Move({
+    destinationSelector: ".footer__inner",
+    targetSelector: ".footer-info",
+    breakpoint: 992,
+  });
+}
+
+// EXTERNAL MODULE: ./src/js/modules/spoilers.js
+var spoilers = __webpack_require__(635);
+;// CONCATENATED MODULE: ./src/js/scripts/scripts/spoilers.js
+
+
+const spoilers_spoilers = new spoilers/* Spoilers */.r();
+
 ;// CONCATENATED MODULE: ./src/js/scripts/scripts.js
+
+
+
 
 
 
@@ -452,5 +1101,6 @@ upButton?.addEventListener("click", () => {
 ;// CONCATENATED MODULE: ./src/js/script.js
 
 
+}();
 /******/ })()
 ;
