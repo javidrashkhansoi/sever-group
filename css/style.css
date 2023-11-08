@@ -775,6 +775,7 @@ html:not(.burger-active) .burger-button__icon--fill {
 }
 
 .up svg {
+  fill: rgba(255, 255, 255, 0.5);
   inline-size: 72px;
   block-size: 72px;
 }
@@ -806,7 +807,7 @@ html:not(.burger-active) .burger-button__icon--fill {
   display: flex;
   flex-direction: column;
   block-size: 100%;
-  min-block-size: 100vh;
+  min-block-size: min(100vh, 555px);
   padding-block: calc(var(--header-height) + var(--slider-padding)) var(--slider-padding);
   --slider-padding: 128px;
 }
@@ -1712,6 +1713,10 @@ html:not(.burger-active) .burger-button__icon--fill {
     margin-inline: calc(var(--gap) * 1px) 50px;
   }
 
+  .hero-card {
+    min-block-size: 100vh;
+  }
+
   .hero-card__container {
     align-items: end;
   }
@@ -1721,6 +1726,10 @@ html:not(.burger-active) .burger-button__icon--fill {
     margin-inline-start: auto;
     -webkit-margin-end: 73px;
     margin-inline-end: 73px;
+  }
+
+  .photos__slider--hide-pc {
+    display: none;
   }
 
   .modal {
@@ -2384,6 +2393,10 @@ html:not(.burger-active) .burger-button__icon--fill {
     margin-inline-start: 29px;
   }
 
+  .photos__slider--hide-tab {
+    display: none;
+  }
+
   .modal__image {
     display: none;
   }
@@ -2520,7 +2533,7 @@ html:not(.burger-active) .burger-button__icon--fill {
   }
 
   .up:hover svg {
-    fill: #216b94;
+    fill: #fff;
   }
 
   .hero-link:hover {

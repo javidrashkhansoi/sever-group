@@ -1229,71 +1229,7 @@ class Dialogs {
 
 const dialogs_dialogs = new Dialogs();
 
-;// CONCATENATED MODULE: ./src/js/scripts/scripts/slider-tabs.js
-/** @type {NodeListOf<HTMLDivElement>} */
-const sliderTabs = document.querySelectorAll("[data-slider-tabs]");
-
-sliderTabs?.forEach(sliderTab => {
-  /** @type {NodeListOf<HTMLButtonElement>} */
-  const tabButtons = sliderTab.querySelectorAll("[data-tab]");
-  /** @type {NodeListOf<HTMLDivElement>} */
-  const tabPanels = sliderTab.querySelectorAll("[data-panel]");
-  /** @type {HTMLDivElement} */
-  const swiper = sliderTab.querySelector(".swiper");
-
-  if (swiper && tabButtons && tabPanels) {
-    const swiperWrapper = swiper.querySelector(".swiper-wrapper");
-
-    /** @type {{[panel: string]: HTMLDivElement[]}} */
-    const panelsObject = {};
-
-    [...tabPanels].forEach(/** @param {HTMLDivElement} tabPanel */ tabPanel => {
-      const { dataset } = tabPanel;
-
-      let { panel } = dataset;
-
-      panel = panel.trim();
-
-      if (panel) {
-        if (panelsObject[panel]) {
-          panelsObject[panel].push(tabPanel);
-        } else {
-          panelsObject[panel] = [tabPanel];
-        }
-      }
-    });
-
-    tabButtons.forEach(tabButton => {
-      tabButton.addEventListener("click", () => {
-        if (!tabButton.classList.contains("models__button--active")) {
-          const { dataset } = tabButton;
-          const { tab } = dataset;
-
-          swiperWrapper.innerHTML = "";
-
-          tabButtons.forEach(button => {
-            button.classList.toggle("models__button--active", button === tabButton);
-          });
-
-          if (tab === "reset") {
-            tabPanels.forEach(tabPanel => {
-              swiperWrapper.insertAdjacentElement("beforeend", tabPanel);
-            });
-          } else {
-            panelsObject[tab].forEach(tabPanel => {
-              swiperWrapper.insertAdjacentElement("beforeend", tabPanel);
-            });
-          }
-
-          swiper.swiper.update();
-        }
-      });
-    });
-  }
-});
-
 ;// CONCATENATED MODULE: ./src/js/scripts/scripts.js
-
 
 
 

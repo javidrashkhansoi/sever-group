@@ -9479,30 +9479,97 @@ if (heroSlider) {
 const modelsSlider = document.querySelector(".models-slider");
 
 if (modelsSlider) {
-  const swiper = new Swiper(modelsSlider, {
-    modules: [Keyboard, Pagination],
-    keyboard: {
-      enabled: true,
-      pageUpDown: false,
-    },
-    pagination: {
-      clickable: true,
-      el: ".models-slider__pagination",
-      enabled: true,
-    },
-    breakpoints: {
-      701: {
-        slidesPerView: 2,
-      },
-      1201: {
-        slidesPerView: 3,
-      },
-    },
-    loop: true,
-    loopAddBlankSlides: true,
-    slidesPerView: 1,
-    spaceBetween: 51,
+  let swiper;
+
+  initSwiper();
+
+  /** @type {NodeListOf<HTMLDivElement>} */
+  const sliderTabs = document.querySelectorAll("[data-slider-tabs]");
+
+  sliderTabs?.forEach(sliderTab => {
+    /** @type {NodeListOf<HTMLButtonElement>} */
+    const tabButtons = sliderTab.querySelectorAll("[data-tab]");
+    /** @type {NodeListOf<HTMLDivElement>} */
+    const tabPanels = sliderTab.querySelectorAll("[data-panel]");
+
+    if (tabButtons && tabPanels) {
+      const swiperWrapper = modelsSlider.querySelector(".swiper-wrapper");
+
+      /** @type {{[panel: string]: HTMLDivElement[]}} */
+      const panelsObject = {};
+
+      [...tabPanels].forEach(/** @param {HTMLDivElement} tabPanel */ tabPanel => {
+        const { dataset } = tabPanel;
+
+        let { panel } = dataset;
+
+        panel = panel.trim();
+
+        if (panel) {
+          if (panelsObject[panel]) {
+            panelsObject[panel].push(tabPanel);
+          } else {
+            panelsObject[panel] = [tabPanel];
+          }
+        }
+      });
+
+      tabButtons.forEach(tabButton => {
+        tabButton.addEventListener("click", () => {
+          if (!tabButton.classList.contains("models__button--active")) {
+            const { dataset } = tabButton;
+            const { tab } = dataset;
+
+            swiperWrapper.innerHTML = "";
+            swiper?.destroy();
+
+            tabButtons.forEach(button => {
+              button.classList.toggle("models__button--active", button === tabButton);
+            });
+
+            if (tab === "reset") {
+              tabPanels.forEach(tabPanel => {
+                swiperWrapper.insertAdjacentElement("beforeend", tabPanel);
+              });
+            } else {
+              panelsObject[tab].forEach(tabPanel => {
+                swiperWrapper.insertAdjacentElement("beforeend", tabPanel);
+              });
+            }
+
+            initSwiper();
+          }
+        });
+      });
+    }
   });
+
+  function initSwiper() {
+    swiper = new Swiper(modelsSlider, {
+      modules: [Keyboard, Pagination],
+      keyboard: {
+        enabled: true,
+        pageUpDown: false,
+      },
+      pagination: {
+        clickable: true,
+        el: ".models-slider__pagination",
+        enabled: true,
+      },
+      breakpoints: {
+        701: {
+          slidesPerView: 2,
+        },
+        1201: {
+          slidesPerView: 3,
+        },
+      },
+      loop: true,
+      loopAddBlankSlides: true,
+      slidesPerView: 1,
+      spaceBetween: 51,
+    });
+  }
 }
 
 const advantagesImagesSlider = document.querySelector(".advantages-images-slider");
@@ -9539,47 +9606,69 @@ if (advantagesImagesSlider) {
   });
 }
 
-const photosSlider = document.querySelector(".photos-slider");
+/** @type {NodeListOf<HTMLDivElement} */
+const photosSliders = document.querySelectorAll(".photos-slider");
 
-if (photosSlider) {
-  const swiper = new Swiper(photosSlider, {
-    modules: [Grid, Keyboard, Pagination],
-    grid: {
-      fill: "row",
-      rows: 1,
-    },
-    keyboard: {
-      enabled: true,
-      pageUpDown: false,
-    },
-    pagination: {
-      clickable: true,
-      el: ".photos-slider__pagination",
-      enabled: true,
-    },
-    breakpoints: {
-      501: {
-        grid: {
-          rows: 2,
-        },
-        slidesPerGroup: 2,
-        slidesPerView: 2,
+photosSliders?.forEach(photosSlider => {
+  const { dataset } = photosSlider;
+
+  let { breakpoint } = dataset;
+  let swiper;
+
+  breakpoint = breakpoint?.trim();
+
+  if (breakpoint) {
+    const media = matchMedia(breakpoint);
+
+    media.addEventListener("change", event => {
+      const { matches } = event;
+
+      matches ? initSwiper() : swiper?.destroy(false, false);
+    });
+
+    if (media.matches) initSwiper();
+  } else {
+    initSwiper();
+  }
+
+  function initSwiper() {
+    swiper = new Swiper(photosSlider, {
+      modules: [Grid, Keyboard, Pagination],
+      grid: {
+        fill: "row",
+        rows: 1,
       },
-      993: {
-        grid: {
-          rows: 3,
-        },
-        slidesPerGroup: 3,
-        slidesPerView: 3,
+      keyboard: {
+        enabled: true,
+        pageUpDown: false,
       },
-    },
-    loop: true,
-    loopAddBlankSlides: true,
-    slidesPerGroup: 1,
-    slidesPerView: 1,
-    spaceBetween: 25,
-  });
-}
+      pagination: {
+        clickable: true,
+        el: photosSlider.querySelector(".photos-slider__pagination"),
+        enabled: true,
+      },
+      breakpoints: {
+        501: {
+          grid: {
+            rows: 2,
+          },
+          slidesPerGroup: 2,
+          slidesPerView: 2,
+        },
+        993: {
+          grid: {
+            rows: 3,
+          },
+          slidesPerGroup: 3,
+          slidesPerView: 3,
+        },
+      },
+      slidesPerGroup: 1,
+      slidesPerView: 1,
+      spaceBetween: 25,
+    });
+  }
+});
 
 const confidenceSlider = document.querySelector(".confidence-slider");
 
