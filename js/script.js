@@ -891,7 +891,7 @@ class Burger {
 
 
 const burger = new Burger({
-  breakpoint: false,
+  breakpoint: 992,
 });
 
 ;// CONCATENATED MODULE: ./src/js/scripts/scripts/up.js
@@ -944,20 +944,27 @@ const sublists = header?.querySelectorAll(".header-nav__region[data-sublist]");
 if (menuButtons.length && sublists.length) {
   menuButtons.forEach(menuButton => {
     menuButton.addEventListener("click", () => {
-      const { dataset } = menuButton;
-      const { menu } = dataset;
+      if (!menuButton.classList.contains("menu-button--active")) {
+        const { dataset } = menuButton;
+        const { menu } = dataset;
 
-      menuButton.classList.add("enter")
+        header.classList.add("show-menu");
 
-      sublists.forEach(sublist => {
-        const { dataset } = sublist;
-        const { sublist: sublistData } = dataset;
+        sublists.forEach(sublist => {
+          const { dataset } = sublist;
+          const { sublist: sublistData } = dataset;
 
-        if (menu === sublistData) {
-          sublist.classList.add("header-nav__region--active");
-          menuButton.classList.add("menu-button--active")
-        }
-      });
+          sublist.classList.toggle("header-nav__region--active", sublistData === menu);
+        });
+
+        menuButtons.forEach(button => {
+          button.classList.toggle("menu-button--active", button === menuButton);
+        });
+      } else {
+        closeSublist();
+
+        if (!document.documentElement.classList.contains("scrolled")) header.classList.remove("show-menu");;
+      }
     });
   });
 
@@ -965,13 +972,19 @@ if (menuButtons.length && sublists.length) {
     /** @type {{target: HTMLElement}} */
     const { target } = event;
 
-    if (!target.closest(".header")) closeSublist();
+    if (!target.closest(".header")) {
+      header.classList.remove("show-menu");
+      closeSublist();
+    }
   });
 
   document.addEventListener("keydown", event => {
     const { code } = event;
 
-    if (code === "Escape") closeSublist();
+    if (code === "Escape") {
+      header.classList.remove("show-menu");
+      closeSublist();
+    }
   });
 
   function closeSublist() {
@@ -981,6 +994,16 @@ if (menuButtons.length && sublists.length) {
     activeSublist?.classList.remove("header-nav__region--active");
     activeMenuButton?.classList.remove("menu-button--active");
   }
+
+  /** @type {HTMLButtonElement} */
+  const burgerButton = header.querySelector(".burger-button");
+  const min993px = matchMedia("(min-width: 993px)");
+
+  burgerButton?.addEventListener("click", () => {
+    const { matches } = min993px;
+
+    header.classList.toggle("show-menu", matches && document.documentElement.classList.contains("scrolled") && !header.classList.contains("show-menu"));
+  });
 }
 
 ;// CONCATENATED MODULE: ./src/js/modules/move.js
@@ -1090,7 +1113,121 @@ var spoilers = __webpack_require__(635);
 
 const spoilers_spoilers = new spoilers/* Spoilers */.r();
 
+;// CONCATENATED MODULE: ./src/js/modules/dialogs.js
+
+
+
+const { burger: dialogs_burger, dialogs: dialogs_app, html: { htmlClassList: dialogs_htmlClassList } } = App;
+
+class Dialogs {
+  #selectors = {
+    buttons: "[data-dialog-id]",
+    closeButton: "[data-dialog=\"close\"]",
+    inner: "[data-dialog=\"inner\"]"
+  }
+  #addingClass = "dialog-active";
+  /** @type {NodeListOf<HTMLButtonElement>} */
+  #buttons = document.querySelectorAll(this.#selectors.buttons);
+  /** @type {DialogsObject} */
+  #dialogs = {};
+  #dialogsArray;
+  #onClickDialog = this.#dialogClickEvent.bind(this);
+  #onCloseDialog = this.#dialogCloseEvent.bind(this);
+
+  constructor() {
+    this.#buttons?.forEach(button => {
+      const { dialogId } = button.dataset;
+
+      if (dialogId) {
+        /** @type {HTMLDialogElement} */
+        const dialog = document.getElementById(dialogId);
+
+        if (dialog) {
+          button.setAttribute("aria-controls", dialogId);
+          button.ariaExpanded = false;
+
+          this.#dialogs[dialogId] = {
+            $button: button,
+            $dialog: dialog,
+            isActive: false
+          };
+        }
+      }
+    });
+
+    this.#dialogsArray = Object.values(this.#dialogs);
+
+    if (this.#dialogsArray.length) {
+      this.#init();
+    }
+  }
+
+  #init() {
+    this.#dialogsArray.forEach(dialog => {
+      const { $button, $dialog } = dialog;
+      /** @type {HTMLButtonElement} */
+      const closeButton = $dialog.querySelector(this.#selectors.closeButton);
+
+      $button.addEventListener("click", () => {
+        if (!$button.hasAttribute("data-disabled")) {
+          $dialog.showModal();
+          $button.ariaExpanded = true;
+          $dialog.addEventListener("click", this.#onClickDialog);
+          $dialog.addEventListener("close", this.#onCloseDialog);
+          dialog.isActive = true;
+
+          if (closeButton) closeButton.focus();
+
+          if (!dialogs_app.activeDialogs) {
+            if (!dialogs_burger.isActive) Scrolling.lock();
+            dialogs_htmlClassList.add(this.#addingClass);
+          }
+
+          dialogs_app.activeDialogs++;
+        }
+      });
+    });
+  }
+
+  /** @param {MouseEvent} event */
+  #dialogClickEvent(event) {
+    const { target } = event;
+    /** @type {HTMLDialogElement} */
+    const dialog = target.closest("dialog");
+
+    if (!target.closest(this.#selectors.inner) || target.closest(this.#selectors.closeButton)) dialog.close();
+  }
+
+  /** @param {Event} event */
+  #dialogCloseEvent(event) {
+    const { target } = event;
+    const { id } = target;
+    const { [id]: dialog } = this.#dialogs;
+    const { $button, $dialog } = dialog;
+
+    $button.ariaExpanded = false;
+    $button.focus();
+    $dialog.removeEventListener("click", this.#onClickDialog);
+    $dialog.removeEventListener("close", this.#onCloseDialog);
+    dialog.isActive = false;
+    dialogs_app.activeDialogs--;
+
+    if (!dialogs_app.activeDialogs) {
+      if (!dialogs_burger.isActive) Scrolling.unlock();
+      dialogs_htmlClassList.remove(this.#addingClass);
+    }
+  }
+}
+
+
+
+;// CONCATENATED MODULE: ./src/js/scripts/scripts/dialogs.js
+
+
+const dialogs_dialogs = new Dialogs();
+
 ;// CONCATENATED MODULE: ./src/js/scripts/scripts.js
+
 
 
 
