@@ -9468,7 +9468,7 @@ if (heroSlider) {
     },
     pagination: {
       clickable: true,
-      el: ".hero-slider__pagination",
+      el: heroSlider.querySelector(".slider-pagination"),
       enabled: true,
     },
     loop: true,
@@ -9553,7 +9553,7 @@ if (modelsSlider) {
       },
       pagination: {
         clickable: true,
-        el: ".models-slider__pagination",
+        el: modelsSlider.querySelector(".slider-pagination"),
         enabled: true,
       },
       breakpoints: {
@@ -9644,7 +9644,7 @@ photosSliders?.forEach(photosSlider => {
       },
       pagination: {
         clickable: true,
-        el: photosSlider.querySelector(".photos-slider__pagination"),
+        el: photosSlider.querySelector(".slider-pagination"),
         enabled: true,
       },
       breakpoints: {
@@ -9676,7 +9676,6 @@ if (confidenceSlider) {
   const swiper = new Swiper(confidenceSlider, {
     modules: [Autoplay, Keyboard],
     autoplay: {
-      // delay: 3000,
       disableOnInteraction: false,
       pauseOnMouseEnter: true,
     },
